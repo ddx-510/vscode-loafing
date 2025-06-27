@@ -7,11 +7,12 @@
     "url": "https://github.com/ddx-510/vscode-loafing"
   },
   "description": "Simulate coding activity to achieve the loafing effect - pretend you're working hard!",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "license": "MIT",
   "engines": {
     "vscode": "^1.74.0"
   },
+  "icon": "/media/icon.png",
   "categories": [
     "Other"
   ],
