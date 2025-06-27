@@ -7,7 +7,7 @@
     "url": "https://github.com/ddx-510/vscode-loafing"
   },
   "description": "Simulate coding activity to achieve the loafing effect - pretend you're working hard!",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "license": "MIT",
   "engines": {
     "vscode": "^1.74.0"
@@ -19,31 +19,55 @@
   "activationEvents": [],
   "main": "./out/extension.js",
   "contributes": {
+    "views": {
+      "loafingView": [
+        {
+          "id": "loafingExplorer",
+          "name": "Loafing Control",
+          "type": "webview",
+          "when": "true"
+        }
+      ]
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "loafingView",
+          "title": "Loafing (摸鱼)",
+          "icon": "$(debug-console)"
+        }
+      ]
+    },
     "commands": [
       {
         "command": "loafing.startPython",
-        "title": "Start Loafing: Python",
-        "category": "Loafing"
+        "title": "Start Python Loafing",
+        "category": "Loafing",
+        "icon": "$(play)"
       },
       {
         "command": "loafing.startGolang",
-        "title": "Start Loafing: Go",
-        "category": "Loafing"
+        "title": "Start Go Loafing",
+        "category": "Loafing",
+        "icon": "$(play)"
       },
       {
         "command": "loafing.startTypeScript",
-        "title": "Start Loafing: TypeScript",
-        "category": "Loafing"
+        "title": "Start TypeScript Loafing",
+        "category": "Loafing",
+        "icon": "$(play)"
       },
       {
         "command": "loafing.stop",
         "title": "Stop Loafing",
-        "category": "Loafing"
+        "category": "Loafing",
+        "icon": "$(debug-stop)"
       },
       {
         "command": "loafing.showPanel",
         "title": "Show Loafing Panel",
-        "category": "Loafing"
+        "category": "Loafing",
+        "icon": "$(output)"
       }
     ],
     "keybindings": [

@@ -1,9 +1,254 @@
 import * as vscode from 'vscode';
 
+// Webview provider for the side panel
+class LoafingSidebarProvider implements vscode.WebviewViewProvider {
+    public static readonly viewType = 'loafingExplorer';
+
+    private _view?: vscode.WebviewView;
+
+    constructor(
+        private readonly _extensionUri: vscode.Uri,
+    ) { }
+
+    public resolveWebviewView(
+        webviewView: vscode.WebviewView,
+        context: vscode.WebviewViewResolveContext,
+        _token: vscode.CancellationToken,
+    ) {
+        this._view = webviewView;
+
+        webviewView.webview.options = {
+            enableScripts: true,
+            localResourceRoots: [
+                this._extensionUri
+            ]
+        };
+
+        webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
+
+        webviewView.webview.onDidReceiveMessage(data => {
+            switch (data.type) {
+                case 'startPython':
+                    vscode.commands.executeCommand('loafing.startPython');
+                    break;
+                case 'startGolang':
+                    vscode.commands.executeCommand('loafing.startGolang');
+                    break;
+                case 'startTypeScript':
+                    vscode.commands.executeCommand('loafing.startTypeScript');
+                    break;
+                case 'stop':
+                    vscode.commands.executeCommand('loafing.stop');
+                    break;
+                case 'showPanel':
+                    vscode.commands.executeCommand('loafing.showPanel');
+                    break;
+            }
+        });
+    }
+
+    public updateStatus() {
+        if (this._view) {
+            this._view.webview.postMessage({
+                type: 'updateStatus',
+                isLoafing: isLoafing
+            });
+        }
+    }
+
+    private _getHtmlForWebview(webview: vscode.Webview) {
+        return `<!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Loafing Control</title>
+                <style>
+                    body {
+                        font-family: var(--vscode-font-family);
+                        font-size: var(--vscode-font-size);
+                        background-color: var(--vscode-sideBar-background);
+                        color: var(--vscode-sideBar-foreground);
+                        padding: 12px;
+                        margin: 0;
+                    }
+                    
+                    .status {
+                        text-align: center;
+                        margin-bottom: 20px;
+                        padding: 12px;
+                        border-radius: 8px;
+                        background-color: var(--vscode-badge-background);
+                        color: var(--vscode-badge-foreground);
+                        font-weight: 600;
+                        font-size: 14px;
+                    }
+                    
+                    .status.active {
+                        background-color: var(--vscode-inputValidation-infoBackground);
+                        color: var(--vscode-inputValidation-infoForeground);
+                        border: 1px solid var(--vscode-inputValidation-infoBorder);
+                    }
+                    
+                    .section {
+                        margin-bottom: 24px;
+                    }
+                    
+                    .section-title {
+                        font-size: 13px;
+                        font-weight: 600;
+                        color: var(--vscode-sideBarSectionHeader-foreground);
+                        margin-bottom: 12px;
+                        text-transform: uppercase;
+                        letter-spacing: 0.5px;
+                    }
+                    
+                    .button {
+                        width: 100%;
+                        padding: 12px 16px;
+                        margin-bottom: 8px;
+                        border: 1px solid var(--vscode-button-border);
+                        border-radius: 6px;
+                        background-color: var(--vscode-button-secondaryBackground);
+                        color: var(--vscode-button-secondaryForeground);
+                        cursor: pointer;
+                        font-size: 13px;
+                        font-weight: 500;
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                        transition: all 0.2s ease;
+                        text-align: left;
+                        font-family: var(--vscode-font-family);
+                    }
+                    
+                    .button:hover {
+                        background-color: var(--vscode-button-secondaryHoverBackground);
+                        transform: translateY(-1px);
+                        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                    }
+                    
+                    .button:active {
+                        transform: translateY(0);
+                    }
+                    
+                    .button.primary {
+                        background-color: var(--vscode-button-background);
+                        color: var(--vscode-button-foreground);
+                    }
+                    
+                    .button.primary:hover {
+                        background-color: var(--vscode-button-hoverBackground);
+                    }
+                    
+                    .button.danger {
+                        background-color: var(--vscode-inputValidation-errorBackground);
+                        color: var(--vscode-inputValidation-errorForeground);
+                        border-color: var(--vscode-inputValidation-errorBorder);
+                    }
+                    
+                    .button.danger:hover {
+                        opacity: 0.9;
+                    }
+                    
+                    .emoji {
+                        font-size: 16px;
+                    }
+                    
+                    .footer {
+                        margin-top: 30px;
+                        padding-top: 16px;
+                        border-top: 1px solid var(--vscode-sideBar-border);
+                        text-align: center;
+                        font-size: 11px;
+                        color: var(--vscode-descriptionForeground);
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="status" id="status">
+                    <span class="emoji">😴</span> Not Loafing
+                </div>
+                
+                <div class="section">
+                    <div class="section-title">Start Loafing</div>
+                    <button class="button" onclick="startLoafing('python')">
+                        <span class="emoji">🐍</span>
+                        Python
+                    </button>
+                    <button class="button" onclick="startLoafing('golang')">
+                        <span class="emoji">🐹</span>
+                        Go
+                    </button>
+                    <button class="button" onclick="startLoafing('typescript')">
+                        <span class="emoji">📘</span>
+                        TypeScript
+                    </button>
+                </div>
+                
+                <div class="section">
+                    <div class="section-title">Controls</div>
+                    <button class="button danger" onclick="stopLoafing()">
+                        <span class="emoji">⏹️</span>
+                        Stop Loafing
+                    </button>
+                    <button class="button primary" onclick="showPanel()">
+                        <span class="emoji">📊</span>
+                        Show Panel
+                    </button>
+                </div>
+                
+                <div class="footer">
+                    摸鱼快乐 🐟
+                </div>
+
+                <script>
+                    const vscode = acquireVsCodeApi();
+                    
+                    function startLoafing(language) {
+                        vscode.postMessage({
+                            type: 'start' + language.charAt(0).toUpperCase() + language.slice(1)
+                        });
+                    }
+                    
+                    function stopLoafing() {
+                        vscode.postMessage({
+                            type: 'stop'
+                        });
+                    }
+                    
+                    function showPanel() {
+                        vscode.postMessage({
+                            type: 'showPanel'
+                        });
+                    }
+                    
+                    // Listen for status updates
+                    window.addEventListener('message', event => {
+                        const message = event.data;
+                        
+                        if (message.type === 'updateStatus') {
+                            const statusElement = document.getElementById('status');
+                            if (message.isLoafing) {
+                                statusElement.innerHTML = '<span class="emoji">🚀</span> Currently Loafing...';
+                                statusElement.className = 'status active';
+                            } else {
+                                statusElement.innerHTML = '<span class="emoji">😴</span> Not Loafing';
+                                statusElement.className = 'status';
+                            }
+                        }
+                    });
+                </script>
+            </body>
+            </html>`;
+    }
+}
+
 let loafingInterval: NodeJS.Timeout | undefined;
 let currentDocument: vscode.TextDocument | undefined;
 let isLoafing = false;
 let loafingPanel: vscode.WebviewPanel | undefined;
+let loafingSidebarProvider: LoafingSidebarProvider;
 
 // Code templates for different languages
 const codeTemplates = {
@@ -164,7 +409,7 @@ async function addRandomCode(language: 'python' | 'golang' | 'typescript'): Prom
     }
 }
 
-function startLoafing(language: 'python' | 'golang' | 'typescript'): void {
+async function startLoafing(language: 'python' | 'golang' | 'typescript'): Promise<void> {
     // Stop any existing loafing session
     if (loafingInterval) {
         clearTimeout(loafingInterval);
@@ -183,44 +428,62 @@ function startLoafing(language: 'python' | 'golang' | 'typescript'): void {
     }
 
     // Create or open a file for the selected language
-    vscode.workspace.openTextDocument({
-        language: language === 'golang' ? 'go' : language,
-        content: initialContent
-    }).then(doc => {
-        currentDocument = doc;
-        vscode.window.showTextDocument(doc).then(editor => {
-            // Set cursor at the end
-            const lastLine = doc.lineCount - 1;
-            const lastCharacter = doc.lineAt(lastLine).text.length;
-            const position = new vscode.Position(lastLine, lastCharacter);
-            editor.selection = new vscode.Selection(position, position);
-
-            // Start the loafing simulation
-            const loafingFunction = async () => {
-                if (isLoafing) {
-                    try {
-                        await addRandomCode(language);
-                    } catch (err) {
-                        console.error('Error during loafing simulation:', err);
-                    }
-                    
-                    // Schedule next code addition with random delay
-                    if (isLoafing) {
-                        const nextDelay = Math.random() * 4000 + 2000; // 2-6 seconds
-                        loafingInterval = setTimeout(loafingFunction, nextDelay);
-                    }
-                }
-            };
-            
-            // Start first code addition after a short delay
-            loafingInterval = setTimeout(loafingFunction, 2000);
-
-            vscode.window.showInformationMessage(`Started loafing in ${language}! 开始摸鱼！`);
-            
-            // Update panel if it exists
-            updatePanelState();
+    let languageId: string;
+    if (language === 'golang') {
+        languageId = 'go';
+    } else if (language === 'typescript') {
+        languageId = 'typescript';
+    } else {
+        languageId = 'python';
+    }
+    
+    try {
+        const doc = await vscode.workspace.openTextDocument({
+            language: languageId,
+            content: initialContent
         });
-    });
+        
+        currentDocument = doc;
+        console.log(`Created document with language: ${doc.languageId}, URI: ${doc.uri.toString()}`);
+        
+        const editor = await vscode.window.showTextDocument(doc);
+        
+        // Set cursor at the end
+        const lastLine = doc.lineCount - 1;
+        const lastCharacter = doc.lineAt(lastLine).text.length;
+        const position = new vscode.Position(lastLine, lastCharacter);
+        editor.selection = new vscode.Selection(position, position);
+
+        // Start the loafing simulation
+        const loafingFunction = async () => {
+            if (isLoafing) {
+                try {
+                    await addRandomCode(language);
+                } catch (err) {
+                    console.error('Error during loafing simulation:', err);
+                }
+                
+                // Schedule next code addition with random delay
+                if (isLoafing) {
+                    const nextDelay = Math.random() * 4000 + 2000; // 2-6 seconds
+                    loafingInterval = setTimeout(loafingFunction, nextDelay);
+                }
+            }
+        };
+        
+        // Start first code addition after a short delay
+        loafingInterval = setTimeout(loafingFunction, 2000);
+
+        vscode.window.showInformationMessage(`Started loafing in ${language}! 开始摸鱼！`);
+        
+        // Update panel if it exists
+        updatePanelState();
+        
+    } catch (error: any) {
+        console.error(`Failed to create ${language} document:`, error);
+        vscode.window.showErrorMessage(`Failed to start ${language} loafing: ${error.message || error}`);
+        isLoafing = false;
+    }
 }
 
 function stopLoafing(): void {
@@ -244,6 +507,11 @@ function updatePanelState(): void {
             command: 'updateState',
             isLoafing: isLoafing
         });
+    }
+    
+    // Update the sidebar status
+    if (loafingSidebarProvider) {
+        loafingSidebarProvider.updateStatus();
     }
 }
 
@@ -524,6 +792,14 @@ function getWebviewContent(): string {
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Loafing extension is now active! 摸鱼插件已激活！');
+
+    // Initialize sidebar provider
+    loafingSidebarProvider = new LoafingSidebarProvider(context.extensionUri);
+    
+    // Register webview view provider
+    context.subscriptions.push(
+        vscode.window.registerWebviewViewProvider(LoafingSidebarProvider.viewType, loafingSidebarProvider)
+    );
 
     // Register commands
     context.subscriptions.push(
