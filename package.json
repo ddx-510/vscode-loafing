@@ -1,0 +1,86 @@
+{
+  "name": "vscode-loafing",
+  "publisher": "ddx001",
+  "displayName": "Loafing (摸鱼)",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ddx-510/vscode-loafing"
+  },
+  "description": "Simulate coding activity to achieve the loafing effect - pretend you're working hard!",
+  "version": "1.0.0",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "loafing.startPython",
+        "title": "Start Loafing: Python",
+        "category": "Loafing"
+      },
+      {
+        "command": "loafing.startGolang",
+        "title": "Start Loafing: Go",
+        "category": "Loafing"
+      },
+      {
+        "command": "loafing.startTypeScript",
+        "title": "Start Loafing: TypeScript",
+        "category": "Loafing"
+      },
+      {
+        "command": "loafing.stop",
+        "title": "Stop Loafing",
+        "category": "Loafing"
+      },
+      {
+        "command": "loafing.showPanel",
+        "title": "Show Loafing Panel",
+        "category": "Loafing"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "loafing.startPython",
+        "key": "ctrl+shift+l p",
+        "mac": "cmd+shift+l p"
+      },
+      {
+        "command": "loafing.startGolang",
+        "key": "ctrl+shift+l g",
+        "mac": "cmd+shift+l g"
+      },
+      {
+        "command": "loafing.startTypeScript",
+        "key": "ctrl+shift+l t",
+        "mac": "cmd+shift+l t"
+      },
+      {
+        "command": "loafing.stop",
+        "key": "ctrl+shift+l s",
+        "mac": "cmd+shift+l s"
+      },
+      {
+        "command": "loafing.showPanel",
+        "key": "ctrl+shift+l ctrl+shift+l",
+        "mac": "cmd+shift+l cmd+shift+l"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/node": "16.x",
+    "@types/vscode": "^1.74.0",
+    "typescript": "^4.9.4"
+  }
+} 
