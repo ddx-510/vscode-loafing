@@ -7,7 +7,7 @@
     "url": "https://github.com/ddx-510/vscode-loafing"
   },
   "description": "Simulate coding activity to achieve the loafing effect - pretend you're working hard!",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "license": "MIT",
   "engines": {
     "vscode": "^1.74.0"
@@ -58,16 +58,10 @@
         "icon": "$(play)"
       },
       {
-        "command": "loafing.stop",
+                "command": "loafing.stop",
         "title": "Stop Loafing",
         "category": "Loafing",
         "icon": "$(debug-stop)"
-      },
-      {
-        "command": "loafing.showPanel",
-        "title": "Show Loafing Panel",
-        "category": "Loafing",
-        "icon": "$(output)"
       }
     ],
     "keybindings": [
@@ -90,11 +84,6 @@
         "command": "loafing.stop",
         "key": "ctrl+shift+l s",
         "mac": "cmd+shift+l s"
-      },
-      {
-        "command": "loafing.showPanel",
-        "key": "ctrl+shift+l ctrl+shift+l",
-        "mac": "cmd+shift+l cmd+shift+l"
       }
     ]
   },

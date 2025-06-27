@@ -40,9 +40,7 @@ class LoafingSidebarProvider implements vscode.WebviewViewProvider {
                 case 'stop':
                     vscode.commands.executeCommand('loafing.stop');
                     break;
-                case 'showPanel':
-                    vscode.commands.executeCommand('loafing.showPanel');
-                    break;
+
             }
         });
     }
@@ -75,66 +73,64 @@ class LoafingSidebarProvider implements vscode.WebviewViewProvider {
                     
                     .status {
                         text-align: center;
-                        margin-bottom: 20px;
-                        padding: 12px;
-                        border-radius: 8px;
+                        margin-bottom: 16px;
+                        padding: 8px;
+                        border-radius: 4px;
                         background-color: var(--vscode-badge-background);
-                        color: var(--vscode-badge-foreground);
-                        font-weight: 600;
-                        font-size: 14px;
+                        color: var(--vscode-input-foreground);
+                        font-weight: 500;
+                        font-size: 12px;
                     }
                     
                     .status.active {
-                        background-color: var(--vscode-inputValidation-infoBackground);
-                        color: var(--vscode-inputValidation-infoForeground);
-                        border: 1px solid var(--vscode-inputValidation-infoBorder);
+                        background-color: var(--vscode-badge-background);
+                        color: var(--vscode-input-foreground);
                     }
                     
                     .section {
-                        margin-bottom: 24px;
+                        margin-bottom: 16px;
                     }
                     
                     .section-title {
-                        font-size: 13px;
+                        font-size: 11px;
                         font-weight: 600;
-                        color: var(--vscode-sideBarSectionHeader-foreground);
-                        margin-bottom: 12px;
+                        color: var(--vscode-input-foreground);
+                        margin-bottom: 8px;
                         text-transform: uppercase;
                         letter-spacing: 0.5px;
                     }
                     
                     .button {
                         width: 100%;
-                        padding: 12px 16px;
-                        margin-bottom: 8px;
-                        border: 1px solid var(--vscode-button-border);
-                        border-radius: 6px;
-                        background-color: var(--vscode-button-secondaryBackground);
-                        color: var(--vscode-button-secondaryForeground);
+                        padding: 8px 12px;
+                        margin-bottom: 6px;
+                        border: 1px solid var(--vscode-input-border);
+                        border-radius: 4px;
+                        background-color: var(--vscode-input-background);
+                        color: var(--vscode-input-foreground);
                         cursor: pointer;
-                        font-size: 13px;
-                        font-weight: 500;
+                        font-size: 12px;
+                        font-weight: normal;
                         display: flex;
                         align-items: center;
-                        gap: 8px;
-                        transition: all 0.2s ease;
+                        gap: 6px;
+                        transition: background-color 0.15s ease;
                         text-align: left;
                         font-family: var(--vscode-font-family);
                     }
                     
                     .button:hover {
-                        background-color: var(--vscode-button-secondaryHoverBackground);
-                        transform: translateY(-1px);
-                        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                        background-color: var(--vscode-list-hoverBackground);
                     }
                     
                     .button:active {
-                        transform: translateY(0);
+                        background-color: var(--vscode-list-activeSelectionBackground);
                     }
                     
                     .button.primary {
                         background-color: var(--vscode-button-background);
                         color: var(--vscode-button-foreground);
+                        border-color: var(--vscode-button-background);
                     }
                     
                     .button.primary:hover {
@@ -142,25 +138,25 @@ class LoafingSidebarProvider implements vscode.WebviewViewProvider {
                     }
                     
                     .button.danger {
-                        background-color: var(--vscode-inputValidation-errorBackground);
-                        color: var(--vscode-inputValidation-errorForeground);
-                        border-color: var(--vscode-inputValidation-errorBorder);
+                        background-color: var(--vscode-input-background);
+                        color: var(--vscode-input-foreground);
+                        border-color: var(--vscode-errorForeground);
                     }
                     
                     .button.danger:hover {
-                        opacity: 0.9;
+                        background-color: var(--vscode-inputValidation-errorBackground);
                     }
                     
                     .emoji {
-                        font-size: 16px;
+                        font-size: 14px;
                     }
                     
                     .footer {
-                        margin-top: 30px;
-                        padding-top: 16px;
+                        margin-top: 20px;
+                        padding-top: 12px;
                         border-top: 1px solid var(--vscode-sideBar-border);
                         text-align: center;
-                        font-size: 11px;
+                        font-size: 10px;
                         color: var(--vscode-descriptionForeground);
                     }
                 </style>
@@ -192,10 +188,6 @@ class LoafingSidebarProvider implements vscode.WebviewViewProvider {
                         <span class="emoji">⏹️</span>
                         Stop Loafing
                     </button>
-                    <button class="button primary" onclick="showPanel()">
-                        <span class="emoji">📊</span>
-                        Show Panel
-                    </button>
                 </div>
                 
                 <div class="footer">
@@ -214,12 +206,6 @@ class LoafingSidebarProvider implements vscode.WebviewViewProvider {
                     function stopLoafing() {
                         vscode.postMessage({
                             type: 'stop'
-                        });
-                    }
-                    
-                    function showPanel() {
-                        vscode.postMessage({
-                            type: 'showPanel'
                         });
                     }
                     
@@ -247,7 +233,6 @@ class LoafingSidebarProvider implements vscode.WebviewViewProvider {
 let loafingInterval: NodeJS.Timeout | undefined;
 let currentDocument: vscode.TextDocument | undefined;
 let isLoafing = false;
-let loafingPanel: vscode.WebviewPanel | undefined;
 let loafingSidebarProvider: LoafingSidebarProvider;
 
 // Code templates for different languages
@@ -476,8 +461,8 @@ async function startLoafing(language: 'python' | 'golang' | 'typescript'): Promi
 
         vscode.window.showInformationMessage(`Started loafing in ${language}! 开始摸鱼！`);
         
-        // Update panel if it exists
-        updatePanelState();
+        // Update sidebar status
+        updateSidebarStatus();
         
     } catch (error: any) {
         console.error(`Failed to create ${language} document:`, error);
@@ -497,298 +482,18 @@ function stopLoafing(): void {
         vscode.window.showWarningMessage('No loafing session is currently active.');
     }
     
-    // Update panel if it exists
-    updatePanelState();
+    // Update sidebar status
+    updateSidebarStatus();
 }
 
-function updatePanelState(): void {
-    if (loafingPanel) {
-        loafingPanel.webview.postMessage({
-            command: 'updateState',
-            isLoafing: isLoafing
-        });
-    }
-    
+function updateSidebarStatus(): void {
     // Update the sidebar status
     if (loafingSidebarProvider) {
         loafingSidebarProvider.updateStatus();
     }
 }
 
-function createLoafingPanel(context: vscode.ExtensionContext): void {
-    if (loafingPanel) {
-        loafingPanel.reveal(vscode.ViewColumn.Beside);
-        return;
-    }
 
-    loafingPanel = vscode.window.createWebviewPanel(
-        'loafingPanel',
-        'Loafing Control Panel 摸鱼控制台',
-        vscode.ViewColumn.Beside,
-        {
-            enableScripts: true,
-            retainContextWhenHidden: true
-        }
-    );
-
-    loafingPanel.webview.html = getWebviewContent();
-
-    // Handle messages from the webview
-    loafingPanel.webview.onDidReceiveMessage(
-        message => {
-            switch (message.command) {
-                case 'startPython':
-                    startLoafing('python');
-                    break;
-                case 'startGolang':
-                    startLoafing('golang');
-                    break;
-                case 'startTypeScript':
-                    startLoafing('typescript');
-                    break;
-                case 'stop':
-                    stopLoafing();
-                    break;
-            }
-        },
-        undefined,
-        context.subscriptions
-    );
-
-    // Clean up when panel is disposed
-    loafingPanel.onDidDispose(
-        () => {
-            loafingPanel = undefined;
-        },
-        null,
-        context.subscriptions
-    );
-
-    // Update initial state
-    updatePanelState();
-}
-
-function getWebviewContent(): string {
-    return `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Loafing Control Panel</title>
-    <style>
-        body {
-            font-family: var(--vscode-font-family);
-            background-color: var(--vscode-editor-background);
-            color: var(--vscode-editor-foreground);
-            padding: 20px;
-            margin: 0;
-        }
-        
-        .container {
-            max-width: 400px;
-            margin: 0 auto;
-        }
-        
-        h1 {
-            text-align: center;
-            margin-bottom: 30px;
-            color: var(--vscode-textLink-foreground);
-        }
-        
-        .button-group {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            margin-bottom: 30px;
-        }
-        
-        button {
-            padding: 15px 20px;
-            border: 1px solid var(--vscode-button-border);
-            border-radius: 6px;
-            background-color: var(--vscode-button-background);
-            color: var(--vscode-button-foreground);
-            font-size: 16px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-        
-        button:hover {
-            background-color: var(--vscode-button-hoverBackground);
-            transform: translateY(-1px);
-        }
-        
-        button:active {
-            transform: translateY(0);
-        }
-        
-        .language-btn {
-            background-color: var(--vscode-button-secondaryBackground);
-            color: var(--vscode-button-secondaryForeground);
-        }
-        
-        .language-btn:hover {
-            background-color: var(--vscode-button-secondaryHoverBackground);
-        }
-        
-        .stop-btn {
-            background-color: var(--vscode-errorForeground);
-            color: white;
-            font-weight: bold;
-        }
-        
-        .stop-btn:hover {
-            background-color: #d73a49;
-        }
-        
-        .status {
-            text-align: center;
-            padding: 15px;
-            border-radius: 6px;
-            background-color: var(--vscode-textBlockQuote-background);
-            border-left: 4px solid var(--vscode-textLink-foreground);
-            margin-top: 20px;
-        }
-        
-        .emoji {
-            font-size: 18px;
-        }
-        
-        .description {
-            text-align: center;
-            color: var(--vscode-descriptionForeground);
-            margin-bottom: 20px;
-            font-style: italic;
-        }
-        
-        .keyboard-shortcuts {
-            margin-top: 30px;
-            padding: 15px;
-            background-color: var(--vscode-textBlockQuote-background);
-            border-radius: 6px;
-        }
-        
-        .keyboard-shortcuts h3 {
-            margin-top: 0;
-            color: var(--vscode-textLink-foreground);
-        }
-        
-        .shortcut-item {
-            display: flex;
-            justify-content: space-between;
-            margin: 8px 0;
-            font-family: monospace;
-            font-size: 12px;
-        }
-        
-        .key {
-            background-color: var(--vscode-keybindingLabel-background);
-            color: var(--vscode-keybindingLabel-foreground);
-            padding: 2px 6px;
-            border-radius: 3px;
-            border: 1px solid var(--vscode-keybindingLabel-border);
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1><span class="emoji">🐟</span> Loafing Control Panel 摸鱼控制台</h1>
-        
-        <div class="description">
-            Choose your programming language and start pretending to work hard!
-        </div>
-        
-        <div class="button-group">
-            <button class="language-btn" onclick="startLoafing('python')">
-                <span class="emoji">🐍</span>
-                Start Python Loafing
-            </button>
-            
-            <button class="language-btn" onclick="startLoafing('golang')">
-                <span class="emoji">🐹</span>
-                Start Go Loafing
-            </button>
-            
-            <button class="language-btn" onclick="startLoafing('typescript')">
-                <span class="emoji">📘</span>
-                Start TypeScript Loafing
-            </button>
-            
-            <button class="stop-btn" onclick="stopLoafing()">
-                <span class="emoji">⏹️</span>
-                Stop Loafing
-            </button>
-        </div>
-        
-        <div class="status" id="status">
-            <span class="emoji">😴</span> Not currently loafing
-        </div>
-        
-        <div class="keyboard-shortcuts">
-            <h3>Keyboard Shortcuts</h3>
-            <div class="shortcut-item">
-                <span>Python:</span>
-                <span class="key">Cmd+Shift+L P</span>
-            </div>
-            <div class="shortcut-item">
-                <span>Go:</span>
-                <span class="key">Cmd+Shift+L G</span>
-            </div>
-            <div class="shortcut-item">
-                <span>TypeScript:</span>
-                <span class="key">Cmd+Shift+L T</span>
-            </div>
-            <div class="shortcut-item">
-                <span>Stop:</span>
-                <span class="key">Cmd+Shift+L S</span>
-            </div>
-            <div class="shortcut-item">
-                <span>Panel:</span>
-                <span class="key">Cmd+Shift+L Cmd+Shift+L</span>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        const vscode = acquireVsCodeApi();
-        
-        function startLoafing(language) {
-            vscode.postMessage({
-                command: 'start' + language.charAt(0).toUpperCase() + language.slice(1)
-            });
-        }
-        
-        function stopLoafing() {
-            vscode.postMessage({
-                command: 'stop'
-            });
-        }
-        
-        // Listen for messages from the extension
-        window.addEventListener('message', event => {
-            const message = event.data;
-            
-            if (message.command === 'updateState') {
-                const statusElement = document.getElementById('status');
-                if (message.isLoafing) {
-                    statusElement.innerHTML = '<span class="emoji">🚀</span> Currently loafing... 摸鱼中...';
-                    statusElement.style.borderLeftColor = 'var(--vscode-notificationsInfoIcon-foreground)';
-                } else {
-                    statusElement.innerHTML = '<span class="emoji">😴</span> Not currently loafing';
-                    statusElement.style.borderLeftColor = 'var(--vscode-textLink-foreground)';
-                }
-            }
-        });
-    </script>
-</body>
-</html>`;
-}
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Loafing extension is now active! 摸鱼插件已激活！');
@@ -806,8 +511,7 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.commands.registerCommand('loafing.startPython', () => startLoafing('python')),
         vscode.commands.registerCommand('loafing.startGolang', () => startLoafing('golang')),
         vscode.commands.registerCommand('loafing.startTypeScript', () => startLoafing('typescript')),
-        vscode.commands.registerCommand('loafing.stop', stopLoafing),
-        vscode.commands.registerCommand('loafing.showPanel', () => createLoafingPanel(context))
+        vscode.commands.registerCommand('loafing.stop', stopLoafing)
     );
 
     // Clean up when extension is deactivated
@@ -818,10 +522,6 @@ export function activate(context: vscode.ExtensionContext) {
                 clearTimeout(loafingInterval);
                 loafingInterval = undefined;
             }
-            if (loafingPanel) {
-                loafingPanel.dispose();
-                loafingPanel = undefined;
-            }
         }
     });
 }
@@ -831,9 +531,5 @@ export function deactivate() {
     if (loafingInterval) {
         clearTimeout(loafingInterval);
         loafingInterval = undefined;
-    }
-    if (loafingPanel) {
-        loafingPanel.dispose();
-        loafingPanel = undefined;
     }
 } 
